@@ -20,7 +20,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/orders")
-//@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "http://localhost:3000")
 public class OrderController {
     @Autowired private OrderRepository orderRepository;
     @Autowired private ProductRepository productRepository;

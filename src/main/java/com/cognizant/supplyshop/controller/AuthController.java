@@ -12,11 +12,12 @@ import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
-//@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "http://localhost:3000")
 public class AuthController {
     @Autowired private UserRepository userRepository;
     @Autowired private JwtUtils jwtUtils;
@@ -31,7 +32,7 @@ public class AuthController {
         if(createdToken.equals("")) return ResponseEntity.status(HttpStatus.CONFLICT).build();
         userInfo.put("email", foundUser.getEmail());
         userInfo.put("name", foundUser.getName());
-        userInfo.put("role", foundUser.getRole().toString());
+        userInfo.put("role", foundUser.getRole().toString().toLowerCase());
         userInfo.put("token", "Bearer " + createdToken);
         //return ResponseEntity.ok(new AuthenticationResponse("Bearer " + createdToken));
         return ResponseEntity.ok(userInfo);
@@ -50,7 +51,7 @@ public class AuthController {
         if(createdToken.equals("")) return ResponseEntity.status(HttpStatus.CONFLICT).build();
         userInfo.put("email", user.getEmail());
         userInfo.put("name", user.getName());
-        userInfo.put("role", user.getRole().toString());
+        userInfo.put("role", user.getRole().toString().toLowerCase());
         userInfo.put("token", "Bearer " + createdToken);
 //        return ResponseEntity.ok(new AuthenticationResponse("Bearer " + createdToken));
         return ResponseEntity.ok(userInfo);

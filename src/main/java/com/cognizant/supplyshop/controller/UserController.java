@@ -22,7 +22,6 @@ import java.util.Optional;
 public class UserController {
     @Autowired private UserRepository userRepository;
     @Autowired private AuthService authService;
-    //@CrossOrigin(origins = "http://localhost:3000")
 
     @GetMapping
     public ResponseEntity<?> getUsers() {
