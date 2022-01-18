@@ -25,7 +25,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody User user) {
         Map<String, String> userInfo = new HashMap<>();
-        User foundUser = userRepository.findByEmail(user.getEmail()); // Attempt to retrieve user from DB (if user is created)
+        User foundUser = userRepository.findByEmailAndActive(user.getEmail(), true); // Attempt to retrieve user from DB (if user is created)
         if(foundUser == null || !BCrypt.checkpw(user.getPassword(), foundUser.getPassword())) // If user not exist or invalid password
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Please use correct email or password");
         String createdToken = jwtUtils.generateToken(user); // Authenticate user by creating jwt

@@ -16,4 +16,5 @@ public class Product {
     private int countInStock;
     private String imageCover;
     private String description;
+    private boolean deleted;
 }

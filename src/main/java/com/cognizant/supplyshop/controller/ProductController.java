@@ -9,15 +9,12 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -30,18 +27,18 @@ public class ProductController {
 
     @GetMapping
     public List<Product> getProducts() {
-        return productRepository.findAll();
+        return productRepository.findByDeleted(false);
     }
 
     @GetMapping("{id}")
     public Optional<Product> getProduct(@PathVariable Long id) {
-        return productRepository.findById(id);
+        return productRepository.findByIdAndDeleted(id, false);
     }
 
     @PostMapping
     public ResponseEntity<?> createProduct(@RequestParam("image") MultipartFile imageCover, Product product) {
         if (!authService.isAdmin()) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // Authenticate admin
-        if (productRepository.existsByName(product.getName())) return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        //if (productRepository.existsByName(product.getName())) return ResponseEntity.status(HttpStatus.CONFLICT).build();
         String fileName = System.currentTimeMillis() + imageCover.getOriginalFilename();
         try {
             storageService.save(imageCover, fileName);
@@ -73,25 +70,24 @@ public class ProductController {
         Optional<Product> getProduct = productRepository.findById(id);
         if (getProduct.isEmpty()) return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         Product oldProduct = getProduct.get();
-        if (!imageCover.isEmpty()) {
+        if (imageCover != null) {
             String fileName = System.currentTimeMillis() + imageCover.getOriginalFilename();
             if (!storageService.save(imageCover, fileName))
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build(); // Save new file
-            if (!storageService.delete(oldProduct.getImageCover()))
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build(); // Delete old file
+            storageService.delete(oldProduct.getImageCover()); // Delete old file
             product.setImageCover(fileName); // Update product filename
-        }
+        } else product.setImageCover(oldProduct.getImageCover());
         return ResponseEntity.status(HttpStatus.OK).body(productRepository.save(product));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteProduct(@PathVariable Long id) {
         if (!authService.isAdmin()) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // Authenticate admin
-        if(!productRepository.existsById(id)) return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        if (!productRepository.existsById(id)) return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         Product product = productRepository.getById(id);
-        if (!storageService.delete(product.getImageCover()))
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        productRepository.deleteById(id);
+        storageService.delete(product.getImageCover());
+        product.setDeleted(true);
+        productRepository.save(product); // Don't want to actually delete product or causes problems with order
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 }

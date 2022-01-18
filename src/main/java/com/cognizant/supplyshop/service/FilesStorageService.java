@@ -39,19 +39,16 @@ public class FilesStorageService {
             Path file = root.resolve(filename);
             Resource resource = new UrlResource(file.toUri());
             if (resource.exists() || resource.isReadable()) return resource;
-            else throw new RuntimeException("Could not read the file!");
+            else return new UrlResource(Paths.get("src/main/java/com/cognizant/supplyshop/default.jpg").toUri());
         } catch (MalformedURLException e) {
             throw new RuntimeException("Error: " + e.getMessage());
         }
     }
 
     public boolean delete(String filename) {
-        Path file = root.resolve(filename);
         try {
-            FileSystemUtils.deleteRecursively(file);
-            return true;
+            return filename != null && Files.exists(Paths.get(filename)) && FileSystemUtils.deleteRecursively(root.resolve(filename));
         } catch (IOException e) {
-            e.printStackTrace();
             return false;
         }
     }
