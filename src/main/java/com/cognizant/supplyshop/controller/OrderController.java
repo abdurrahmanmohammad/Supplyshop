@@ -59,7 +59,7 @@ public class OrderController {
 
     @PostMapping
     public ResponseEntity<Order> createOrder(@RequestBody Order order) {
-        if (!authService.isAdmin()) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // Authenticate admin
+        //if (!authService.isAdmin()) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // Authenticate admin
         // Update counts of products in inventory
         List<Product> products = new ArrayList<>();
         for (OrderItem orderItem : order.getOrderItems()) {
@@ -72,6 +72,7 @@ public class OrderController {
             product.setCountInStock(countInStock);
             products.add(product); // Add updated product to list
         }
+        order.setUser(authService.getCurrentUser());
         productRepository.saveAll(products);
         return ResponseEntity.status(HttpStatus.CREATED).body(orderRepository.save(order));
     }
