@@ -4,6 +4,7 @@ import com.cognizant.supplyshop.model.Product;
 import com.cognizant.supplyshop.repository.ProductRepository;
 import com.cognizant.supplyshop.service.AuthService;
 import com.cognizant.supplyshop.service.FilesStorageService;
+import com.cognizant.supplyshop.service.StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -23,7 +24,8 @@ import java.util.Optional;
 public class ProductController {
     @Autowired private ProductRepository productRepository;
     @Autowired private AuthService authService;
-    @Autowired FilesStorageService storageService;
+//    @Autowired FilesStorageService storageService;
+    @Autowired private StorageService storageService;
 
     @GetMapping
     public List<Product> getProducts() {
@@ -41,7 +43,8 @@ public class ProductController {
         //if (productRepository.existsByName(product.getName())) return ResponseEntity.status(HttpStatus.CONFLICT).build();
         String fileName = System.currentTimeMillis() + imageCover.getOriginalFilename();
         try {
-            storageService.save(imageCover, fileName);
+//            storageService.save(imageCover, fileName);
+            storageService.uploadFile(imageCover, fileName);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Could not store image");
         }
@@ -52,11 +55,13 @@ public class ProductController {
     @RequestMapping(value = "/images/{filename:.+}", method = RequestMethod.GET, produces = MediaType.IMAGE_JPEG_VALUE)
     @ResponseBody
     public ResponseEntity<?> getFile(@PathVariable String filename) {
-        Resource image = storageService.load(filename);
+//        Resource image = storageService.load(filename);
+
         try {
-            byte[] bytes = StreamUtils.copyToByteArray(image.getInputStream());
+//            byte[] bytes = StreamUtils.copyToByteArray(image.getInputStream());
+            byte[] bytes = storageService.downloadFile(filename);
             return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(bytes);
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Could not store image");
         }
@@ -72,9 +77,9 @@ public class ProductController {
         Product oldProduct = getProduct.get();
         if (imageCover != null) {
             String fileName = System.currentTimeMillis() + imageCover.getOriginalFilename();
-            if (!storageService.save(imageCover, fileName))
+            if (!storageService.uploadFile(imageCover, fileName))
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build(); // Save new file
-            storageService.delete(oldProduct.getImageCover()); // Delete old file
+            storageService.deleteFile(oldProduct.getImageCover()); // Delete old file
             product.setImageCover(fileName); // Update product filename
         } else product.setImageCover(oldProduct.getImageCover());
         return ResponseEntity.status(HttpStatus.OK).body(productRepository.save(product));
@@ -85,7 +90,7 @@ public class ProductController {
         if (!authService.isAdmin()) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // Authenticate admin
         if (!productRepository.existsById(id)) return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         Product product = productRepository.getById(id);
-        storageService.delete(product.getImageCover());
+        storageService.deleteFile(product.getImageCover());
         product.setDeleted(true);
         productRepository.save(product); // Don't want to actually delete product or causes problems with order
         return ResponseEntity.status(HttpStatus.OK).build();
