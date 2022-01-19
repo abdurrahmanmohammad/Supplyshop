@@ -1,21 +1,34 @@
 package com.cognizant.supplyshop.config;
 
 import com.mysql.jdbc.Driver;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.jdbc.datasource.SimpleDriverDataSource;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
 
 @Configuration
+@PropertySource("classpath:application.properties")
 public class DBConfig {
+    @Value( "${aws.url}" )
+    private String url;
+    @Value( "${aws.username}" )
+    private String username;
+    @Value( "${aws.password}" )
+    private String password;
+
     @Bean
     public DataSource dataSource() throws SQLException {
         SimpleDriverDataSource dataSource = new SimpleDriverDataSource();
-        dataSource.setUrl("jdbc:mysql://database-1-instance-1.cfqctdytya09.us-east-2.rds.amazonaws.com:3306/supplyshop?useSSL=false&allowPublicKeyRetrieval=true");
-        dataSource.setUsername("admin");
-        dataSource.setPassword("Be.Cognizant2022!");
+        dataSource.setUrl(url);
+        dataSource.setUsername(username);
+        dataSource.setPassword(password);
         dataSource.setDriver(new Driver());
         return dataSource;
     }
