@@ -14,7 +14,7 @@ import org.springframework.security.crypto.bcrypt.BCrypt;
 @SpringBootApplication
 public class SupplyshopApplication implements CommandLineRunner {
 	@Autowired UserRepository userRepository;
-	@Autowired FilesStorageService filesStorageService;
+	//@Autowired FilesStorageService filesStorageService;
 
 	public static void main(String[] args) {
 		SpringApplication.run(SupplyshopApplication.class, args);
@@ -22,7 +22,7 @@ public class SupplyshopApplication implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
-		filesStorageService.init(); // Initialize upload folder
+		//filesStorageService.init(); // Initialize upload folder
 		// If db is empty, initialize admin user
 		if(userRepository.count() == 0) {
 			User user = new User();
